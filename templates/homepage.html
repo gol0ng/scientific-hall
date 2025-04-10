@@ -1,0 +1,73 @@
+{% extends 'header.html' %}
+{% block header %}
+    <style>
+        .profile-card img {
+            border-radius: 50%;
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            vertical-align: middle;
+            margin-right: 15px;
+        }
+        .profile-card div {
+            display: inline-block;
+            vertical-align: middle;
+            text-align: left;
+        }
+        .profile-card h2 {
+            margin: 0 0 5px;
+            font-size: 24px;
+        }
+        .profile-card p {
+            margin: 2px 0;
+            color: #555;
+        }
+        .container{
+            margin: 0 auto;
+            width: 80%;
+        }
+    </style>
+{% endblock %}
+{% block content %}
+<div class="container">
+    <div class="introduction" style="width: 100%;box-shadow: 2px 2px 5px black;padding: 20px;margin: 20px 0;border-radius: 5px;overflow: auto;height: 83vh">
+        <p style="font-size: 3vh;font-weight: bolder">基本信息</p>
+        <div class="profile-card">
+            <img src="{{ url_for('useravatar', filename=user.avatar) }}" alt="用户头像">
+            <div>
+                <h2 style="margin: 0;">{{user.name}}</h2>
+                <p style="margin: 5px 0;">{{user.job}}</p>
+                <p style="margin: 5px 0;">{{user.major}}</p>
+                <p style="margin: 5px 0;">{{user.e_mail}}</p>
+            </div>
+        </div>
+        <p style="font-size: 3vh;font-weight: bolder;">个人简介</p>
+        <div id="content"></div>
+    </div>
+</div>
+    <script>
+        const contentDiv = document.getElementById('content');
+        function render(content){
+                const inputText = content.trim();
+                const lines = inputText.split('\n');
+                contentDiv.innerHTML = ''; // 清空之前的内容
+
+                lines.forEach(line => {
+                    let element;
+                    if (line.endsWith('.mp4')) {
+                        element = document.createElement('video');
+                        element.src = line;
+                        element.controls = true;
+                    } else if (line.match(/\.(jpg|jpeg|png)$/i)) {
+                        element = document.createElement('img');
+                        element.src = line;
+                    } else {
+                        element = document.createElement('p');
+                        element.textContent = line;
+                    }
+                    contentDiv.appendChild(element);
+                });
+        }
+        render(`{{ user.introduction | escape }}`);
+    </script>
+{% endblock %}

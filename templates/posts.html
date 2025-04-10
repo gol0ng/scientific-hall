@@ -1,0 +1,166 @@
+{% extends 'header.html' %}
+{% block header %}
+    <style>
+        .timeline {
+            display: flex;
+            position: relative;
+            padding: 40px 0;
+            overflow-x: auto;
+            height: 180px;
+            box-shadow: 2px 2px 5px silver;
+            border-radius: 5px;
+        }
+
+        /* 时间线 */
+        .timeline::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: #ddd;
+            transform: translateY(-50%);
+        }
+
+        .timeline-item {
+            position: relative;
+            min-width: 200px;
+            padding: 0 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-right: 50px;
+            margin-left: 50px;
+        }
+
+        /* 时间点圆圈 */
+        .timeline-item::before {
+            content: '';
+            width: 20px;
+            height: 20px;
+            background: #fff;
+            border: 4px solid #4CAF50;
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 1;
+            transition: all 0.3s;
+        }
+
+        /* 悬浮效果 */
+        .timeline-item:hover::before {
+            transform: translateY(-50%) scale(1.2);
+            background: #4CAF50;
+        }
+
+        /* 内容卡片 */
+        .timeline-content {
+            position: absolute;
+            width: 300px;
+            padding: 15px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+        }
+
+        /* 上下交替布局 */
+        .timeline-item:nth-child(even) .timeline-content {
+            top: calc(50% + 40px);
+        }
+
+        .timeline-item:nth-child(odd) .timeline-content {
+            bottom: calc(50% + 40px);
+        }
+
+        .date {
+            font-weight: bold;
+            color: #4CAF50;
+            margin-bottom: 8px;
+        }
+
+        .description {
+            color: #666;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .timeline-item {
+                min-width: 160px;
+            }
+            .timeline-content {
+                width: 140px;
+                padding: 10px;
+            }
+        }
+    </style>
+{% endblock %}
+{% block content %}
+<div class="container" style="margin: 0 auto;width: 80%;">
+        <div class="timeline">
+        <!-- 时间节点 -->
+        <div class="timeline-item">
+            <div class="timeline-content">
+                <div class="date">2024年11月</div>
+                <div class="description">2025年大创报名</div>
+            </div>
+        </div>
+        <div class="timeline-item">
+            <div class="timeline-content">
+                <div class="date">2025年2月</div>
+                <div class="description">"大唐杯"</div>
+            </div>
+        </div>
+        <div class="timeline-item">
+            <div class="timeline-content">
+                <div class="date">2025年4月</div>
+                <div class="description">"蓝桥杯"省赛</div>
+            </div>
+        </div>
+        <div class="timeline-item">
+            <div class="timeline-content">
+                <div class="date">2025年5月</div>
+                <div class="description">全国大学生计算机比赛</div>
+            </div>
+        </div>
+        <div class="timeline-item">
+            <div class="timeline-content">
+                <div class="date">2025年5月底~2025年6月初</div>
+                <div class="description">"蓝桥杯"国赛</div>
+            </div>
+        </div>
+        <div class="timeline-item">
+            <div class="timeline-content">
+                <div class="date">2025年10月</div>
+                <div class="description">2025年大创结项</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 自动居中最新节点
+        window.addEventListener('load', () => {
+            const timeline = document.querySelector('.timeline');
+            const lastItem = document.querySelector('.timeline-item:last-child');
+            timeline.scrollLeft = lastItem.offsetLeft - timeline.offsetWidth/2;
+        });
+    </script>
+{% for post in posts %}
+    <div class="post" style="margin: 10px 0;box-shadow: 2px 2px 5px silver;padding: 10px;border-radius: 5px;cursor: pointer" onclick="gotodetail('{{post.id}}')">
+        <p style="font-size: 2vh;font-weight: bolder;margin: 0;">{{post.title}}</p>
+        <p style="font-size: 1.5vh;margin: 0;">
+            {{post.created_at}}
+        </p>
+    </div>
+{% endfor %}
+</div>
+<script>
+    function gotodetail(id) {
+        window.location.href = "/post/"+id
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,78 @@
+{% extends 'header.html' %}
+{% block header %}
+    <style>
+        .post-container {
+            max-width: 600px;
+            margin: 10px auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            height: 82vh;
+            overflow: auto;
+            position: relative;
+        }
+        .post-title {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .post-content {
+            font-size: 16px;
+            color: #555;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+        .post-time {
+            position: absolute;
+            bottom: 10px;
+            font-size: 14px;
+            color: #777;
+        }
+        .profile-card img {
+            border-radius: 50%;
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            vertical-align: middle;
+            margin-right: 15px;
+        }
+        .profile-card div {
+            display: inline-block;
+            vertical-align: middle;
+            text-align: left;
+        }
+        .profile-card h2 {
+            margin: 0 0 5px;
+            font-size: 24px;
+        }
+        .profile-card p {
+            margin: 2px 0;
+            color: #555;
+        }
+    </style>
+{% endblock %}
+{% block content %}
+<div class="post-container">
+    <div class="profile-card" onclick="gotouser('{{author.id}}')">
+        <img src="{{author_avatar}}" alt="用户头像">
+        <div>
+            <h2 style="margin: 0;">{{author.name}}</h2>
+            <p style="margin: 5px 0;">{{author.job}}</p>
+            <p style="margin: 5px 0;">{{author.major}}</p>
+            <p style="margin: 5px 0;">{{author.e_mail}}</p>
+        </div>
+    </div>
+    <h2 class="post-title">{{post.title}}</h2>
+    <div class="post-content">{{post.content}}</div>
+    <div class="post-time">发布于：{{post.created_at}}</div>
+</div>
+<script>
+    function gotouser(id) {
+        window.location.href = "/user/" + id;
+    }
+</script>
+{% endblock %}
+
+
+

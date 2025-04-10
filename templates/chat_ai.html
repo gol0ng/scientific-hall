@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI助手</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f0f0f0;
+        }
+
+        /* 聊天容器 */
+        .chat-container {
+            max-width: 800px;
+            margin: 0 auto;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 消息区域 */
+        .messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        /* 消息气泡通用样式 */
+        .message {
+            max-width: 70%;
+            padding: 12px 16px;
+            border-radius: 8px;
+            position: relative;
+            word-wrap: break-word;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        /* 用户消息（右侧） */
+        .user-message {
+            align-self: flex-end;
+            background: #07c160;
+            color: white;
+            border-bottom-right-radius: 2px;
+        }
+
+        /* 对方消息（左侧） */
+        .other-message {
+            align-self: flex-start;
+            background: white;
+            border-bottom-left-radius: 2px;
+        }
+
+        /* 时间戳 */
+        .timestamp {
+            font-size: 12px;
+            color: #999;
+            margin-top: 4px;
+        }
+
+        /* 输入区域 */
+        .input-area {
+            padding: 15px;
+            background: white;
+            display: flex;
+            gap: 10px;
+            border-top: 1px solid #ddd;
+        }
+
+        /* 输入框 */
+        .message-input {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 24px;
+            outline: none;
+            font-size: 16px;
+        }
+
+        /* 发送按钮 */
+        .send-btn {
+            padding: 12px 24px;
+            background: #07c160;
+            color: white;
+            border: none;
+            border-radius: 24px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .send-btn:hover {
+            background: #059d4c;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 480px) {
+            .message {
+                max-width: 85%;
+            }
+
+            .input-area {
+                padding: 10px;
+            }
+
+            .message-input {
+                padding: 10px;
+            }
+
+            .send-btn {
+                padding: 10px 20px;
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="messages" id="messages">
+            <!-- 示例消息 -->
+            <div class="message other-message">
+                你好！有什么可以帮你的？
+                <div class="timestamp">10:00 AM</div>
+            </div>
+        </div>
+
+        <div class="input-area">
+            <input type="text" class="message-input" id="messageInput" placeholder="输入消息...">
+            <button class="send-btn" onclick="sendMessage()">发送</button>
+        </div>
+    </div>
+
+    <script>
+        const messageInput = document.getElementById('messageInput');
+        const messagesContainer = document.getElementById('messages');
+
+        // 发送消息
+        function sendMessage() {
+            const message = messageInput.value.trim();
+            if (!message) return;
+
+            // 创建用户消息
+            const userDiv = document.createElement('div');
+            userDiv.className = 'message user-message';
+            userDiv.innerHTML = `
+                ${message}
+                <div class="timestamp">${getCurrentTime()}</div>
+            `;
+            messagesContainer.appendChild(userDiv);
+
+            // 清空输入框并聚焦
+            messageInput.value = '';
+            messageInput.focus();
+            scrollToBottom();
+            receiveMessage('为您推荐小明同学，他在2023年计算机比赛中取得国奖2等奖，很适合您，点击本消息即可快速到达该同学/教师主页')
+        }
+        function receiveMessage(text) {
+            const otherDiv = document.createElement('div');
+            otherDiv.className = 'message other-message';
+            otherDiv.innerHTML = `
+                ${text}
+                <div class="timestamp">${getCurrentTime()}</div>
+            `;
+            messagesContainer.appendChild(otherDiv);
+            scrollToBottom();
+        }
+
+        // 回车发送
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        // 获取当前时间
+        function getCurrentTime() {
+            const now = new Date();
+            return `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+        }
+
+        // 滚动到底部
+        function scrollToBottom() {
+            messagesContainer.scrollTo({
+                top: messagesContainer.scrollHeight,
+                behavior: 'smooth'
+            });
+        }
+    </script>
+</body>
+</html>

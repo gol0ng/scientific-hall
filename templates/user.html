@@ -1,0 +1,248 @@
+{% extends 'header.html' %}
+{% block header %}
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 20px 0;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: center;
+            min-width: 120px;
+        }
+
+        th {
+            background-color: #f4f4f4;
+        }
+
+        .time-column {
+            background-color: #f8f9fa;
+            font-weight: bold;
+        }
+
+        td:hover {
+            background-color: #f0f8ff;
+            cursor: pointer;
+        }
+
+        .event {
+            background-color: #e3f2fd;
+            font-size: 0.9em;
+            word-break: break-word;
+        }
+        /* 模态框背景 */
+        .modal {
+            display: none; /* 默认隐藏 */
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        /* 模态框内容 */
+        .modal-content {
+            background-color: white;
+            margin: 15% auto;
+            padding: 20px;
+            border-radius: 8px;
+            width: 300px;
+            text-align: center;
+        }
+                .profile-card img {
+            border-radius: 50%;
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            vertical-align: middle;
+            margin-right: 15px;
+        }
+        .profile-card div {
+            display: inline-block;
+            vertical-align: middle;
+            text-align: left;
+        }
+        .profile-card h2 {
+            margin: 0 0 5px;
+            font-size: 24px;
+        }
+        .profile-card p {
+            margin: 2px 0;
+            color: #555;
+        }
+        .container{
+            margin: 0 auto;
+            width: 80%;
+        }
+    </style>
+{% endblock %}
+{% block content %}
+    <div class="introduction" style="width: 100%;box-shadow: 2px 2px 5px black;padding: 20px;margin: 20px 0;border-radius: 5px;overflow: auto;height: 83vh">
+        <p style="font-size: 3vh;font-weight: bolder">基本信息</p>
+        <div class="profile-card">
+            <img src="{{ url_for('useravatar', filename=user.avatar) }}" alt="用户头像">
+            <div>
+                <h2 style="margin: 0;">{{user.name}}</h2>
+                <p style="margin: 5px 0;">{{user.job}}</p>
+                <p style="margin: 5px 0;">{{user.major}}</p>
+                <p style="margin: 5px 0;">{{user.e_mail}}</p>
+            </div>
+        </div>
+        <p style="font-size: 3vh;font-weight: bolder;">个人简介</p>
+        <div id="content"></div>
+    </div>
+    <table id="schedule">
+        <thead>
+            <tr>
+                <th>时间</th>
+                <th>周一</th>
+                <th>周二</th>
+                <th>周三</th>
+                <th>周四</th>
+                <th>周五</th>
+                <th>周六</th>
+                <th>周日</th>
+            </tr>
+        </thead>
+        <tbody id="schedule-body">
+            <!-- 动态生成表格内容 -->
+        </tbody>
+    </table>
+    <!-- 模态框 -->
+    <div id="myModal" class="modal">
+        <div class="modal-content">
+            <p>您确定要执行操作吗？</p>
+            <button class="confirm-btn" id="confirmBtn" onclick="handleConfirmClick()">确认</button>
+            <button class="cancel-btn" id="cancelBtn" onclick="handleCancelClick()">取消</button>
+        </div>
+    </div>
+<script>
+    // 全局存储日程数据
+    let scheduleData = {};
+    const modal = document.getElementById('myModal');
+
+    // 全局变量用于存储当前点击的 day 和 hour
+    let currentDay = null;
+    let currentHour = null;
+    const path = window.location.pathname;
+    id = path.split('/')[2]
+    // 初始化日程表
+    async function initSchedule() {
+        try {
+            // 一次性获取所有日程数据
+            const response = await fetch('/schedule_get/'+id);
+            scheduleData = await response.json();
+            renderSchedule();
+        } catch (error) {
+            console.error('数据加载失败:', error);
+        }
+    }
+
+    // 渲染日程表格
+    function renderSchedule() {
+        const tbody = document.getElementById('schedule-body');
+        tbody.innerHTML = '';
+
+        const startHour = 8;
+        const endHour = 22;
+
+        for (let hour = startHour; hour <= endHour; hour++) {
+            const row = document.createElement('tr');
+
+            // 添加时间列
+            const timeCell = document.createElement('td');
+            timeCell.className = 'time-column';
+            timeCell.textContent = `${hour}:00`;
+            row.appendChild(timeCell);
+
+            // 创建每日单元格
+            for (let day = 0; day < 7; day++) {
+                const cell = document.createElement('td');
+                cell.dataset.key = `${day}-${hour}`;
+
+                // 从全局数据获取日程内容
+                const eventContent = scheduleData[`${day}-${hour}`] || '';
+                if (eventContent) {
+                    cell.innerHTML = `<div class="event">${eventContent}</div>`;
+                }
+
+                // 添加点击事件处理
+                cell.addEventListener('click', handleCellClick);
+                row.appendChild(cell);
+            }
+            tbody.appendChild(row);
+        }
+    }
+
+    // 处理单元格点击事件
+    function handleCellClick(event) {
+        const cell = event.target.closest('td');
+        const key = cell.dataset.key;
+        currentDay = Number(key.split('-')[0])+1; // 存储当前点击的 day
+        currentHour = key.split('-')[1]; // 存储当前点击的 hour
+        modal.style.display = 'block'; // 显示模态框
+    }
+
+    // 确认操作
+    function confirm() {
+        fetch('/confirm',{
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                id: id,
+                day: currentDay,
+                hour: currentHour,
+            }),
+        })
+    }
+
+    // 处理确认按钮点击事件
+    function handleConfirmClick() {
+        modal.style.display = 'none'; // 隐藏模态框
+        confirm(); // 调用 confirm 函数
+    }
+
+    // 处理取消按钮点击事件
+    function handleCancelClick() {
+        modal.style.display = 'none'; // 隐藏模态框
+    }
+
+        const contentDiv = document.getElementById('content');
+        function render(content){
+                const inputText = content.trim();
+                const lines = inputText.split('\n');
+                contentDiv.innerHTML = ''; // 清空之前的内容
+
+                lines.forEach(line => {
+                    let element;
+                    if (line.endsWith('.mp4')) {
+                        element = document.createElement('video');
+                        element.src = line;
+                        element.controls = true;
+                    } else if (line.match(/\.(jpg|jpeg|png)$/i)) {
+                        element = document.createElement('img');
+                        element.src = line;
+                    } else {
+                        element = document.createElement('p');
+                        element.textContent = line;
+                    }
+                    contentDiv.appendChild(element);
+                });
+        }
+        render(`{{ user.introduction | escape }}`);
+    // 页面加载初始化
+    window.onload = initSchedule;
+</script>
+{% endblock %}

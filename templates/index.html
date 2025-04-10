@@ -1,0 +1,155 @@
+{% extends 'header.html' %}
+{% block header %}
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 20px 0;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: center;
+            min-width: 120px;
+        }
+
+        th {
+            background-color: #f4f4f4;
+        }
+
+        .time-column {
+            background-color: #f8f9fa;
+            font-weight: bold;
+        }
+
+        td:hover {
+            background-color: #f0f8ff;
+            cursor: pointer;
+        }
+
+        .event {
+            background-color: #e3f2fd;
+            font-size: 0.9em;
+            word-break: break-word;
+        }
+    </style>
+{% endblock %}
+{% block content %}
+    <table id="schedule">
+        <thead>
+            <tr>
+                <th>时间</th>
+                <th>周一</th>
+                <th>周二</th>
+                <th>周三</th>
+                <th>周四</th>
+                <th>周五</th>
+                <th>周六</th>
+                <th>周日</th>
+            </tr>
+        </thead>
+        <tbody id="schedule-body">
+            <!-- 动态生成表格内容 -->
+        </tbody>
+    </table>
+
+    <script>
+        // 全局存储日程数据
+        let scheduleData = {};
+
+        // 初始化日程表
+        async function initSchedule() {
+            try {
+                // 一次性获取所有日程数据
+                const response = await fetch('/schedule_get');
+                scheduleData = await response.json();
+                renderSchedule();
+            } catch (error) {
+                console.error('数据加载失败:', error);
+            }
+        }
+
+        // 渲染日程表格
+        function renderSchedule() {
+            const tbody = document.getElementById('schedule-body');
+            tbody.innerHTML = '';
+
+            const startHour = 8;
+            const endHour = 22;
+
+            for (let hour = startHour; hour <= endHour; hour++) {
+                const row = document.createElement('tr');
+
+                // 添加时间列
+                const timeCell = document.createElement('td');
+                timeCell.className = 'time-column';
+                timeCell.textContent = `${hour}:00`;
+                row.appendChild(timeCell);
+
+                // 创建每日单元格
+                for (let day = 0; day < 7; day++) {
+                    const cell = document.createElement('td');
+                    cell.dataset.key = `${day}-${hour}`;
+
+                    // 从全局数据获取日程内容
+                    const eventContent = scheduleData[`${day}-${hour}`] || '';
+                    if (eventContent) {
+                        cell.innerHTML = `<div class="event">${eventContent}</div>`;
+                    }
+
+                    // 添加点击事件处理
+                    cell.addEventListener('click', handleCellClick);
+                    row.appendChild(cell);
+                }
+                tbody.appendChild(row);
+            }
+        }
+
+        // 处理单元格点击事件
+        async function handleCellClick(event) {
+            const cell = event.target.closest('td');
+            const key = cell.dataset.key;
+            const currentContent = scheduleData[key] || '';
+
+            const newContent = prompt('请输入日程内容（留空则删除）:', currentContent);
+            if (newContent === null) return;  // 用户取消输入
+
+            try {
+                // 更新服务器数据
+                const response = await fetch('/schedule_update', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        time: key,
+                        content: newContent.trim()
+                    })
+                });
+
+                if (!response.ok) throw new Error('保存失败');
+
+                // 更新本地数据和界面
+                if (newContent.trim()) {
+                    scheduleData[key] = newContent.trim();
+                    cell.innerHTML = `<div class="event">${newContent.trim()}</div>`;
+                } else {
+                    delete scheduleData[key];
+                    cell.innerHTML = '';
+                }
+            } catch (error) {
+                console.error('保存失败:', error);
+                alert('操作失败，请重试');
+                // 恢复原始内容
+                cell.innerHTML = currentContent ? `<div class="event">${currentContent}</div>` : '';
+            }
+        }
+
+        // 页面加载初始化
+        window.onload = initSchedule;
+    </script>
+{% endblock %}
